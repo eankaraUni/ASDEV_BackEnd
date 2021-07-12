@@ -17,5 +17,8 @@ assigned user(who have to solve the issue)
 [P2] Author should see the resolved issue on next login (as a notification)
 [P1] Update an issue. User can edit his authored issues.
 
-Start your project with :
+To download the packages dependencies use the following command:
 npm install -g
+
+To start the server use the following command:
+node server.js
