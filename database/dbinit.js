@@ -18,7 +18,6 @@ async function init() {
 }
 
 async function populateDb() {
-  
   await setSchemaValidator(db, "User", {
     required: ["username", "password"],
     properties: {
@@ -39,28 +38,45 @@ async function populateDb() {
       },
     },
   });
-  //   _self.init = function () {
-  //     console.log("ERda");
-  //   };
 
-  csvtojson().fromFile("users.csv").then(csvData => {
-    db.collection("User").insertMany(csvData, (err, res) => {
-      if (err) throw err;
-        // res.send("Cannot Update the Database!");
-      });
+  try {
+    await db.collection("User").createIndex({ username: 1 }, { unique: true });
+  } catch (err) {
+    console.error("Error:", err);
+  }
 
-  });
+  const usersCsv = await csvtojson().fromFile("users.csv");
+  await db.collection("User").bulkWrite(
+    usersCsv.map((userData) => ({
+      updateOne: {
+        filter: { username: userData.username },
+        update: { $set: userData },
+        upsert: true,
+      },
+    }))
+  );
 
-  csvtojson().fromFile("issues.csv").then(csvData => {
-    db.collection("Issue").insertMany(csvData, (err, res) => {
-      if (err) throw err;
-        // res.send("Cannot Update the Database!");
-      });
+  const hasIssues = await db.collection("Issue").countDocuments();
+  if (!hasIssues) {
+    const issuesCsv = await csvtojson().fromFile("issues.csv");
+    await db.collection("Issue").insertMany(issuesCsv);
+  }
 
-  });
+  // csvtojson()
+  //   .fromFile("issues.csv")
+  //   .then((csvData) => {
+  //     db.collection("Issue").insertMany(csvData, (err, res) => {
+  //       if (err) throw err;
+  //       // res.send("Cannot Update the Database!");
+  //     });
+  //   });
 
   //updated = true;
-
 }
 
-module.exports = { db, init };
+module.exports = {
+  getDb() {
+    return db;
+  },
+  init,
+};

@@ -4,7 +4,7 @@ const bcrypt = require("bcryptjs");
 const bodyParser = require("body-parser");
 const { v4 } = require("uuid");
 
-const { setSchemaValidator } = require("./utils");
+// const { setSchemaValidator } = require("./utils");
 
 /**@type {import('mongodb').Db} */
 let db;
@@ -150,17 +150,17 @@ app.listen(3000, async () => {
       useUnifiedTopology: true
       //native_parser: false
     });
-  db = client.db("roadIssues");
+  db = client.db("RoadIssues");
 
-  await setSchemaValidator(db, "User", {
-    required: ["username", "password"],
-    properties: {
-      username: {
-        bsonType: "string",
-      },
-      password: {
-        bsonType: "string",
-      },
-    },
-  });
+  // await setSchemaValidator(db, "User", {
+  //   required: ["username", "password"],
+  //   properties: {
+  //     username: {
+  //       bsonType: "string",
+  //     },
+  //     password: {
+  //       bsonType: "string",
+  //     },
+  //   },
+  // });
 });
