@@ -1,32 +1,44 @@
-var dbConn = require("./dbConn.js");
 const { setSchemaValidator } = require("../utils/utils.js");
+const { MongoClient } = require("mongodb");
 
-var dbUpdate = function () {
-    var _self = this;
-    db = dbConn.db("roadIssues");
-    // await setSchemaValidator(db, "User", {
-    //     required: ["username", "password"],
-    //     properties: {
-    //       firstname:{
-    //         bsonType: "string",   
-    //       },
-    //       lastname:{
-    //         bsonType: "string",   
-    //       },
-    //       username: {
-    //         bsonType: "string",
-    //       },
-    //       password: {
-    //         bsonType: "string",
-    //       },
-    //       email:{
-    //         bsonType: "string"  
-    //       }
-    //     },
-    //   });
-    _self.init = function () {
-        console.log("ERda");
-    };
-};
+/**@type {import('mongodb').Db} */
+let db;
 
-module.exports = new dbUpdate();
+async function init() {
+  const client = await MongoClient.connect("mongodb://localhost:27017", {
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+    //native_parser: false
+  });
+  db = client.db("RoadIssues");
+
+  await populateDb();
+}
+
+async function populateDb() {
+  await setSchemaValidator(db, "User", {
+    required: ["username", "password"],
+    properties: {
+      firstname: {
+        bsonType: "string",
+      },
+      lastname: {
+        bsonType: "string",
+      },
+      username: {
+        bsonType: "string",
+      },
+      password: {
+        bsonType: "string",
+      },
+      email: {
+        bsonType: "string",
+      },
+    },
+  });
+  //   _self.init = function () {
+  //     console.log("ERda");
+  //   };
+}
+
+module.exports = { db, init };
