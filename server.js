@@ -1,10 +1,31 @@
 var express = require('express');
+var dbUpdate =  require("./database/dbinit.js")
+var dbConn = require("./database/dbConn.js");
+// dbUpdate.init();
+// dbConn.client;
+const { setSchemaValidator } = require("./utils/utils.js");
+
+/**@type {import('mongodb').Db} */
+let db;
+
 var app = express();
+//app.use(bodyParser.json());
+
 app.get('/', function (req, res) {
 res.send('Hello World');
 });
-var server = app.listen(3000, function () {
-var host = server.address().address
-var port = server.address().port
-console.log("Example app listening at http://%s:%s", host, port)
+app.listen(3000, async () => {
+    console.log("Server started at 3000");
+    db = dbConn.db("roadIssues");
+    await setSchemaValidator(db, "User", {
+      required: ["username", "password"],
+      properties: {
+        username: {
+          bsonType: "string",
+        },
+        password: {
+          bsonType: "string",
+        },
+      },
+    });
 });
