@@ -4,7 +4,8 @@ const { setSchemaValidator } = require("./utils/utils.js");
 const bcrypt = require("bcryptjs");
 const bodyParser = require("body-parser");
 const { v4 } = require("uuid");
-const { ReturnDocument } = require("mongodb");
+const mongo = require("mongodb")
+// const { ReturnDocument } = require("mongodb");
 
 const app = express();
 app.use(bodyParser.json());
@@ -37,21 +38,20 @@ async function authenticate(req, res) {
 
   const token = await getDb().collection("Token").findOne({ token: authToken });
   if (!token) {
-    const error = new Error("Unath");
+    const error = new Error("Unathorized ");
     error.statusCode = 401;
     throw error;
-    // res.status(401).send('No token!');
+    // res.status(401).send('Your Session Expired');
   }
   //TODO fix magi numbers
-
   if (Date.now() - token.created.getTime() > 1000 * 30 * 60) {
-    // res.status(401).send('Expired Token');
+    //res.status(401).send('Expired Token');
     const error = new Error("Unath");
     error.statusCode = 401;
     throw error;
   }
-
-  return await getDb().collection("User").findOne({ _id: token.userId });
+  else{
+  return await getDb().collection("User").findOne({ _id: token.userId });}
 }
 
 app.post("/api/createUsers/", async (req, res) => {
@@ -105,6 +105,7 @@ app.post("/api/issues", async (req, res) => {
   try {
     //Here fix Admin and reporter... They can not add Issues only Update them !!
     const user = await authenticate(req, res);
+    if(user.role === Roles.reporter){
     const result = await getDb().collection("Issue").insert({
       status: IssueStatus.open,
       date: new Date(),
@@ -112,6 +113,12 @@ app.post("/api/issues", async (req, res) => {
       // TODO description
     });
     res.send(result.ops[0]);
+
+    }
+    else {
+        res.send("Only Reporters can report Road Issues");
+    }
+
   } catch (err) {
     res.status(err.statusCode || 500).send(err.message || "Unexpected error");
   }
@@ -140,14 +147,14 @@ app.get("/api/issues", async (req, res) => {
  */
 function buildIssue(data) {
   return {
-    description: data.description,
-    status: IssueStatus.open,
+    Description: data.description,
+    status: data.status,
     streetAddress: data.streetAddress,
-    city: data.city,
-    country: data.country,
-    createdDate: new Date(),
-    author: data.author,
-    assignedUser: "admin",
+    City: data.City,
+    Country: data.Country,
+    raportedDate: data.raportedDate,
+    author: data.Author,
+    assignedUser: data.assignedUser,
   };
 }
 
@@ -157,19 +164,44 @@ app.post("/api/addIssues", async (req, res) => {
     const { description, streetAddress, city, country } = req.body;
 
     const issue = buildIssue({
+      status: IssueStatus.open,
       streetAddress,
       description,
       city,
       country,
+      raportedDate: new Date(),
       author: loggedInUser.username,
+      assignedUser: 'admin'
     });
     const result = await getDb().collection("Issue").insertOne(issue);
     issue._id = result.insertedId;
     res.send(issue);
   } catch (err) {
-    res.send("User creation failed");
+    res.send("Issue creation failed");
   }
 });
+app.put("/api/updateIssue/:id", async (req, res) => {
+  try {
+    const id = req.params.id;
+    const loggedInUser = await authenticate(req, res);
+    const AuthorData = await getDb().collection("Issue").findOne({"author": loggedInUser.username});
+    if (AuthorData){
+    const issue = {};
+    for(let prop in req.body) if(req.body[prop]) issue[prop] = req.body[prop];
+    issue.Author = loggedInUser.username;
+    const result = await getDb().collection("Issue").updateOne({"_id" : new mongo.ObjectId(id)},{$set: issue }, {upsert: true});
+    issue._id = result.insertedId;
+    res.send(issue);
+    }
+    else
+    {
+        res.send("Only the author can update an issue");
+    }
+  } catch (err) {
+    res.send("Issue Updating failed");
+  }
+});
+
 app.listen(3000, async () => {
   await init();
   console.log("Server started at 3000");
