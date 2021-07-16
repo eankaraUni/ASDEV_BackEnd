@@ -36,6 +36,9 @@ async function populateDb() {
       email: {
         bsonType: "string",
       },
+      role: {
+        bsonType: "string",
+      }
     },
   });
 
