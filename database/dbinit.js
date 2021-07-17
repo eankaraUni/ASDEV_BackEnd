@@ -38,7 +38,7 @@ async function populateDb() {
       },
       role: {
         bsonType: "string",
-      }
+      },
     },
   });
 
