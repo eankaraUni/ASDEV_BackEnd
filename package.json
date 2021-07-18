@@ -3,9 +3,7 @@
   "version": "1.0.0",
   "description": "The final project of ASDEV",
   "main": "server.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
+
   "repository": {
     "type": "git",
     "url": "git+https://github.com/erdapisaUni/ASDEV_BackEnd.git"

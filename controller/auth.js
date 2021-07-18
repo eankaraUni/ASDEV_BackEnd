@@ -1,6 +1,7 @@
 var express = require("express");
 var router = express.Router();
-const { getUsername, isPwdMatch } = require("../database/auth.db");
+
+const { getUsername, isPwdMatch, signup } = require("../database/auth.db");
 const { createToken } = require("../database/token.js");
 const { executeHandler } = require("../utils/httpHandler");
 
@@ -25,10 +26,16 @@ router.post(
   })
 );
 
+router.post(
+  "/users/signup",
+  executeHandler(async (req) => {
+    const result = await signup(req.body);
+    return(result.acknowledged);
+  })
+);
+
 router.get("/test", (req, res) => {
   res.send("ok");
 });
 
-module.exports = {
-  auth: router,
-};
+module.exports = router;

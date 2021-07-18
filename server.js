@@ -12,8 +12,11 @@ const router_private = require('./controller/private')
 const app = express();
 // app.use(cors);
 app.use(bodyParser.json());
-app.use('/api', router_auth.auth);
-app.use('/private', router_private.private);
+app.use('/api', router_auth);
+app.use('/private', router_private);
+app.get('/testing', async (req, res) => {
+  res.send("Here");
+});
 
 app.listen(3000, async () => {
     await init();

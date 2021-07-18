@@ -9,11 +9,12 @@ const { v4 } = require("uuid");
  */
 async function createToken(user) {
   const token = v4();
-  return await getDb().collection("Token").insertOne({
+  await getDb().collection("Token").insertOne({
     userId: user._id,
     token,
     created: new Date(),
   });
+  return token;
 }
 
 /**
@@ -28,8 +29,11 @@ async function getUserFromToken(authorization) {
     error.statusCode = 401;
     throw error;
   }
+  console.log(authorization);
   const authToken = authorization.split(" ")[1];
-  const token = getToken(authToken);
+  console.log(authToken);
+  const token = await getToken(authToken);
+  console.log(token);
   if (!token) {
     const error = new Error("Wrong Token");
     error.statusCode = 401;
@@ -40,17 +44,18 @@ async function getUserFromToken(authorization) {
     const error = new Error("Token expired");
     error.statusCode = 401;
     throw error;
-  } else {
-    return getUser(token.userId);
-  }
+  } 
+  return getUser(token.userId);
+  
 }
 /**
  *
  * @param {String} authToken Users randomly generated Token
  * @returns the founded Data from Token Collection filtering by token
  */
-async function getToken(authToken) {
-  return await getDb().collection("Token").findOne({ token: authToken });
+function getToken(authToken) {
+  console.log(getDb());
+  return getDb().collection("Token").findOne({ token: authToken });
 }
 /**
  *

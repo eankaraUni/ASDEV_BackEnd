@@ -10,7 +10,7 @@ const Roles = {
   operator: "O",
 };
 
-export function buildIssue(data) {
+function buildIssue(data) {
   return {
     Description: data.description,
     status: data.status,
@@ -23,4 +23,5 @@ export function buildIssue(data) {
   };
 }
 
-export default { IssueStatus, Roles };
+module.exports = {Roles, IssueStatus, buildIssue};
+
