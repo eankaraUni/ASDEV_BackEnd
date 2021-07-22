@@ -16,17 +16,17 @@ router.get("/Issues", executeHandler(async (req) => {
 );
 router.put("/Issue/:id", executeHandler(async (req) => {
   const id = req.params.id;
-  if (isAuthor(id, req.user.username) === true) {
+  // if (isAuthor(id, req.user.username) === true) {
     const issue = {};
     for (let prop in req.body)
       if (req.body[prop]) issue[prop] = req.body[prop];
     if (await updateIssue(id, issue)) {
       return "It was successfully updated";
     }
-  }
-  else {
-    return "Only the author can update a Issue";
-  }
+  // }
+  // else {
+  //   return "Only the author can update a Issue";
+  // }
 })
 );
 router.get("Issue/Assigned/:username", executeHandler(async (req) => {
