@@ -27,7 +27,8 @@ const Roles = {
   operator: "O",
 };
 
-async function authenticate(req, res) {
+
+async function authenticate(req, extra) {
   const { authorization } = req.headers;
   if (!authorization) {
     const error = new Error("Unath");

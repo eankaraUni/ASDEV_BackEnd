@@ -5,7 +5,7 @@ async function getUsers() {
     return await getDb().collection("User").find().toArray();
 }
 async function getIssuesAdmin() {
-    return await getDb().collection("Issues").find().toArray();
+    return await getDb().collection("Issue").find().toArray();
 }
 // async function createUsers() {
 //     return await getDb().collection("Issues").find().toArray();

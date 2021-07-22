@@ -1,81 +1,59 @@
 var express = require('express');
 var router = express.Router();
-const {executeHandler}  = require("../../utils/httpHandler");
-const {isAssignedIssue} = require("../../database/operator.db");
-const {getUserFromToken} = require("../../database/token.js");
-const {getDb} = require ("../../database/dbinit");
+//const { executeHandler } = require("../../utils/httpHandler");
+const { isAssignedIssue, getAssignedIssues, filterAuthor, filterStatus, solveIssue } = require("../../database/operator.db");
+const { getUserFromToken } = require("../../database/token.js");
+//const { getDb } = require("../../database/dbinit");
+const {IssueStatus} = require("../../models/statusRoles.module");
 
 router.get("/testO", (req, res) => {
-    res.send("ok");
-  });
+  res.send(req.user);
+});
 
-router.get("/issues", async (req, res) => {
+router.get("/Issues", async (req, res) => {
   try {
     const loggedInUser = await getUserFromToken(req.headers);
-
-    const filter = {};
-    if (user.role === Roles.operator) {
-      filter.assignedUser = user.username;
-    }
-    // if (user.role === Roles.reporter) {
-    //   filter.author = user.username;
-    // }
-    const result = await getDb().collection("Issue").find(filter).toArray();
-    res.send(result);
-    //res.send();
-  } catch (err) {}
+    return await getAssignedIssues(loggedInUser.username);
+  } catch (err) {
+    res.send("Failed to get the data");
+  }
 });
+
+//router.post comments section
 
 router.get("/issues/Status/:status", async (req, res) => {
   try {
     const loggedInUser = await getUserFromToken(req.headers);
     const status = req.params.status;
-    const filter = { status: status, assignedUser };
-    if (loggedInUser.role === Roles.operator) {
-      filter.assignedUser = user.username;
-    }
-    const result = await getDb().collection("Issue").find(filter).toArray();
+    const result = await filterStatus(loggedInUser.username, status);
     res.send(result);
     //res.send();
-  } catch (err) {}
+  } catch (err) { }
 });
 router.get("issues/Author/:author", async (req, res) => {
   try {
-    const loggedInUser = await getUserFromToken(req.headers);    const author = req.params.author;
-    const filter = { author: author , assignedUser};
-    if (user.role === Roles.operator) {
-      filter.assignedUser = user.username;
-      const result = await getDb().collection("Issue").find(filter).toArray();
-    }
-    else{
-        result = "Only operators and admin can filter by author"
-    }
+    const loggedInUser = await getUserFromToken(req.headers);
+    const author = req.params.author;
+    const result = await filterAuthor(author, loggedInUser.username);
     res.send(result);
-    //res.send();
-  } catch (err) {}
+
+  } catch (err) { }
 });
-router.put("/api/updateStatus/:id", async (req, res) => {
+router.post("/api/updateStatus/:id", async (req, res) => {
   try {
     //solve the Issue
     const id = req.params.id;
-    const status = req.body.status;
-    const loggedInUser = await getUserFromToken(req.headers);    const author = req.params.author;
-    
-    // const AssignedData = await getDb()
-    //   .collection("Issue")
-    //   .findOne({ assignedUser: loggedInUser.username });
-    if (await isAssignedIssue(id,loggedInUser.username)) {
-      const result = await getDb()
-        .collection("Issue")
-        .updateOne({ _id: new mongo.ObjectId(id) }, { $set: { status } });
-      //issue._id = result.upsertedId;
-      res.send({ id, loggedInUser });
+    const status = IssueStatus.solved;
+    const loggedInUser = await getUserFromToken(req.headers);
+    if (await isAssignedIssue(id, loggedInUser.username) === true) {
+      const result = await solveIssue(id, status);
+      res.send(result);
     } else {
       res.send("Only the assigned User can resolve the Issue");
     }
   } catch (err) {
-    res.send("Issue Updating failed");
+    res.send("Issue Status Updating failed");
   }
 });
-  
+
 module.exports = router;

@@ -3,7 +3,6 @@
   "version": "1.0.0",
   "description": "The final project of ASDEV",
   "main": "server.js",
-
   "repository": {
     "type": "git",
     "url": "git+https://github.com/erdapisaUni/ASDEV_BackEnd.git"

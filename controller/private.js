@@ -1,5 +1,5 @@
-var express = require("express");
-var router = express.Router();
+const express = require("express");
+const router = express.Router();
 const { getUserFromToken } = require("../database/token.js");
 const { executeHandler } = require("../utils/httpHandler");
 
@@ -9,53 +9,30 @@ const router_a = require("./private/admin.js");
 const { Roles } = require("../models/statusRoles.module.js");
 
 
+function authenticateRoute(role) {
+  return async (req, res, next) => {
+    try {
+      const authorization = req.headers.authorization;
+      const user = await getUserFromToken(authorization);
 
-router.use(executeHandler(async (req) => {
-  console.log(req.headers.authorization);
-  const authorization = req.headers.authorization;
-  const user = await getUserFromToken(authorization);
-  console.log(user);
-  // req.body.user = "user.username";
-  // req.body.role = "user.role";
-  req.body.user = user.username;
-  req.body.role = user.role;
-  next();
-  // return next(undefined, req);
-}));
-// function isReporter(req, res, next) {
-//   if (req.role === "R") {
-//     next();
-//   }
-//   return res.json({
-//     message: "You don't have permission",
-//   });
-// }
-// function isOperator(req, res, next) {
-//   if (req.role === "O") {
-//     next();
-//   }
+      if (user.role !== role) {
+        res.status(401).send('Unauthorized');
+        return;
+      }
 
-//   return res.json({
-//     message: "You don't have permission",
-//   });
-// }
-// function isAdmin(req, res, next) {
-//   if (req.role === "A") {
-//     next();
-//   }
-
-//   return res.json({
-//     message: "You don't have permission",
-//   });
-// }
-
-// router.use("/reporter", isReporter, router_r.reporterC);
-// router.use("/operator", isOperator, router_o.operatorC);
-// router.use("/admin", isAdmin, router_a.adminC);
+      req.user = user;
+      next();
+    } catch (err) {
+      res.status(err.statusCode || 500).send(err.message || 'Internal server error');
+    }
+  };
 
 
-router.use("/reporter", router_r);
-router.use("/operator", router_o);
-router.use("/admin", router_a);
+}
+
+
+router.use("/reporter", express.Router().use(authenticateRoute('R')).use('/', router_r));
+router.use("/operator", express.Router().use(authenticateRoute('O')).use('/', router_o));
+router.use("/admin", express.Router().use(authenticateRoute('A')).use('/', router_a));
 
 module.exports = router;

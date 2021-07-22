@@ -1,17 +1,20 @@
 const express = require("express");
-const { getDb, init } = require("./database/dbinit.js");
-// const bcrypt = require("bcryptjs");
+const app = express();
 const bodyParser = require("body-parser");
-// const { v4 } = require("uuid");
-// const mongo = require("mongodb");
-// const {executeHandler}  = require("./utils/httpHandler");
-const cors = require("cors");
+const cors = require('cors');
+
+const { init } = require("./database/dbinit.js");
+
 const router_auth = require('./controller/auth')
 const router_private = require('./controller/private')
 
-const app = express();
-// app.use(cors);
+
+
+app.use(cors({
+    origin: '*'
+}));
 app.use(bodyParser.json());
+
 app.use('/api', router_auth);
 app.use('/private', router_private);
 app.get('/testing', async (req, res) => {
